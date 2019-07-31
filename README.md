@@ -41,7 +41,7 @@ npm install -g ganache-cli
  
 1. Clone the repo
 ```sh
-git clone https:://github.com/github_username/repo.git
+git clone https://github.com/iisaint/online-marketplace.git
 ```
 2. Install NPM packages
 ```sh
