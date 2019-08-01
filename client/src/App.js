@@ -231,6 +231,15 @@ class App extends Component {
     const { contract, accounts, forcedOwner } = this.state;
     console.log(forcedOwner);
     await contract.methods.forcedWithdraw(forcedOwner).send({from: accounts[0]});
+
+    const storeCount = await contract.methods.getStoreCount().call();
+    let stores = [];
+    for (let i=0; i < storeCount; i++) {
+      const store = await contract.methods.getStoreAtIndex(i).call();
+      stores.push(store);
+    }
+    console.log(stores);
+    this.setState({ stores });
   }
 
   handleCreateFront = async () => {

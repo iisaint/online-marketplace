@@ -31,10 +31,8 @@ To get a local copy up and running follow these simple steps.
 
 ### Prerequisites
 
-* npm
-```sh
-npm install -g npm@latest
-```
+* nodejs and npm, [here](https://nodejs.org/en/).
+
 * truffle framework
 ```sh
 npm install -g truffle
