@@ -15,7 +15,9 @@ The central marketplace is managed by a group of administrators. Admins allow st
  
 * A shopper logs into the app. The web app does not recognize their address so they are shown the generic shopper application. From the main page they can browse all of the storefronts that have been created in the marketplace. Clicking on a storefront will take them to a product page. They can see a list of products offered by the store, including their price and quantity. Shoppers can purchase a product, which will debit their account and send it to the store. The quantity of the item in the store’s inventory will be reduced by the appropriate amount.
 
-* An approved store owner logs into the app. They can toggle storefronts and products to open or close. Shoppers cannot see closed storefronts and closed products.
+* An approved store owner logs into the app. The store owner can toggle storefronts and products to open or close. Shoppers cannot see closed storefronts and closed products.
+
+* An approved store owner logs into the app. They can withdraw their income (balances). The balance of the store owner will be reduced by the appropriate amount.
 
 * Circuit Breakers. Admin can toggle contract active or deactivate. The forcedWithdraw function can be executed to force store owners to clean up their balance while deactivating. 
 
