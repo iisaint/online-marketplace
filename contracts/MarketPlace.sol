@@ -131,7 +131,7 @@ contract MarketPlace is Adminable {
     */
   function withdraw(uint _amount) public onlyStoreOwner stopInEmergency {
       require(_amount <= stores[msg.sender].balance, "insufficient balance.");
-      stores[msg.sender].balance.sub(_amount);
+      stores[msg.sender].balance = stores[msg.sender].balance.sub(_amount);
       msg.sender.transfer(_amount);
       emit LogWithdraw(msg.sender, stores[msg.sender].balance);
   }
