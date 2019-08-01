@@ -37,6 +37,7 @@ class App extends Component {
       balance: 0,
       items: [],
       buyAmount: 0,
+      shopperItems: [],
     };
   }
 
@@ -139,7 +140,30 @@ class App extends Component {
         }
       }
       console.log(items);
-      this.setState({ role, items });
+      
+      // get shopper's all purches items
+      let shopperItems = [];
+      for (let i=0; i < storeCount; i++) {
+        const store = await contract.methods.getStoreAtIndex(i).call();
+        const frontCount = await contract.methods.getFrontsCount(store.owner).call();
+        for (let j=0; j < frontCount; j++) {
+          const front = await contract.methods.getFrontAtIndex(store.owner, j).call();
+          const productCount = await contract.methods.getProductsCount(store.owner, front.name).call();
+          for (let k=0; k < productCount; k++) {
+            const product = await contract.methods.getProductAtIndex(store.owner, front.name, k).call();
+            const amount = await contract.methods.getShopperProducts(store.owner, front.name, product.name, accounts[0]).call();
+            const item = {
+              store: store.name,
+              front: front.name,
+              product: product.name,
+              amount: amount
+            }
+            shopperItems.push(item);
+          }
+        }
+      }
+      console.log(shopperItems);
+      this.setState({ role, items, shopperItems });
     }
     
     
@@ -271,7 +295,31 @@ class App extends Component {
       }
     }
     console.log(items);
-    this.setState({ items });
+
+    // get shopper's all purches items
+    let shopperItems = [];
+    for (let i=0; i < storeCount; i++) {
+      const store = await contract.methods.getStoreAtIndex(i).call();
+      const frontCount = await contract.methods.getFrontsCount(store.owner).call();
+      for (let j=0; j < frontCount; j++) {
+        const front = await contract.methods.getFrontAtIndex(store.owner, j).call();
+        const productCount = await contract.methods.getProductsCount(store.owner, front.name).call();
+        for (let k=0; k < productCount; k++) {
+          const product = await contract.methods.getProductAtIndex(store.owner, front.name, k).call();
+          const amount = await contract.methods.getShopperProducts(store.owner, front.name, product.name, accounts[0]).call();
+          const item = {
+            store: store.name,
+            front: front.name,
+            product: product.name,
+            amount: amount
+          }
+          shopperItems.push(item);
+        }
+      }
+    }
+    console.log(shopperItems);
+
+    this.setState({ items, shopperItems });
   }
 
   admin() {
@@ -411,7 +459,7 @@ class App extends Component {
               <td>{e.front}</td>
               <td>{e.product.name}</td>
               <td>{e.product.price}</td>
-              <td>{parseInt(e.product.quantity) - parseInt(e.product.sales)}</td>
+              <td>{parseInt(e.product.quantity)}</td>
               <td>{e.product.sales}</td>
               <td>
               amount <input name="buyAmount" type="text" value={this.state.buyAmount} onChange={this.handleInputChange} /><br></br>
@@ -419,6 +467,35 @@ class App extends Component {
               </td>
               </tr>
             )
+          )}
+        </tbody>
+        </Table>
+        <br></br>
+        <p>Purchased items</p>
+        <Table>
+        <thead>
+          <tr>
+            <th>Store</th>
+            <th>Front</th>
+            <th>Product</th>
+            <th>amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {this.state.shopperItems.map(e =>  {
+            if (e.amount > 0) {
+              return (
+                <tr key={e.store + e.front + e.product}>
+                <td>{e.store}</td>
+                <td>{e.front}</td>
+                <td>{e.product}</td>
+                <td>{e.amount}</td>
+                </tr>
+              )
+            } else {
+              return null
+            }
+          }
           )}
         </tbody>
       </Table>

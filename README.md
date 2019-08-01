@@ -47,22 +47,41 @@ git clone https://github.com/iisaint/online-marketplace.git
 ```sh
 npm install
 ```
-3. Run ganache-cli on a new terminal
+3. Open a new terminal and run ganache-cli
 ```sh
 ganache-cli
 ```
-4. Connect to ganache-cli and run tests
+4. Switch back to previous terminal and connect to ganache-cli and run tests
 ```sh
 $ truffle console --network=ganache
 truffle(ganache)> compile
 truffle(ganache)> migrate --reset
 truffle(ganache)> test
 ```
-5. Start a dapp
+5. Open a new terminal and start a dapp UI
 ```sh
 $ cd client
 $ yarn install
 $ yarn start
+```
+
+### How to migrate to testnet (ropsten or rinkeby)
+```sh
+$ mv ./config/dev_sample.js ./config/dev.js
+```
+Fill in your infura url and mnemonic in ./config/dev.js
+```javascriopt
+// dev.js - don't commit this!!
+module.exports = {
+  infura: 'YOUR INFURA URI',
+  mnemonic: 'YOUR SEED PHRASE',
+};
+```
+```sh
+$ truffle console --network=ropsten
+truffle(ropsten)> compile
+truffle(ropsten)> migrate --reset
+truffle(ropsten)> networks
 ```
 
 <!-- LICENSE -->

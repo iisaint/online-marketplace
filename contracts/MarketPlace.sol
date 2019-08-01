@@ -12,6 +12,7 @@ contract MarketPlace is Adminable {
     uint quantity;
     uint sales;
     bool isOpen;
+    mapping(address => uint) shoppers;
   }
   
   struct Front {
@@ -162,12 +163,13 @@ contract MarketPlace is Adminable {
       require(p.isOpen, "the product is not open.");
       require(_amount <= p.quantity, "out of amount.");
       require(msg.value >= _amount * p.price, "not enough value.");
-      p.quantity = p.quantity.sub(_amount);
-      p.sales = p.sales.add(_amount);
       uint refund = msg.value.sub(_amount.mul(p.price));
       if (refund > 0) {
           msg.sender.transfer(refund);
       }
+      p.quantity = p.quantity.sub(_amount);
+      p.sales = p.sales.add(_amount);
+      p.shoppers[msg.sender] = p.shoppers[msg.sender].add(_amount);
       s.balance = s.balance.add(msg.value.sub(refund));
       emit LogBuyProduct(msg.sender, _owner, _front, _product, _amount);
   }
@@ -261,6 +263,15 @@ contract MarketPlace is Adminable {
       quantity = p.quantity;
       sales = p.sales;
       isOpen = p.isOpen;
+  }
+
+  function getShopperProducts(address _owner, string memory _front, string memory _product, address _shopper) public view returns(uint amount) {
+    require(isStore[_owner], "the owner's store doesn't exist");
+    Store storage s = stores[_owner];
+    require(s.isFront[_front], "the owner's front doesn't exist");
+    Front storage f = s.fronts[_front];
+    Product storage p = f.products[_product];
+    amount = p.shoppers[_shopper];
   }
   
   /** @dev Fallback function which reverts all tx.

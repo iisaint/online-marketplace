@@ -118,7 +118,6 @@ contract("MarketPlace", accounts => {
   it("...should success to buyProduct", async () => {
     const tx = await MarketPlaceInstance.buyProduct(owner1, front, product.name, 1, { from: shopper, value: product.price});
     const event = tx.logs[0];
-    console.log(event);
     assert.equal(event.event, "LogBuyProduct", "the created event should be emitted.");
     assert.equal(event.args.shopper, shopper, "the created event shopper should match.");
     assert.equal(event.args.owner, owner1, "the created event store owner should match.");
@@ -127,7 +126,12 @@ contract("MarketPlace", accounts => {
     assert.equal(event.args.amount, 1, "the created event buy amount should match.");
 
     const productInfo = await MarketPlaceInstance.getProductAtIndex(owner1, front, 0);
-    console.log(productInfo);
+
+    assert.equal(productInfo.sales.toString(), "1", "the sales should be 1");
+    assert.equal(productInfo.quantity.toString(), "99", "the sales should be 99");
+
+    const shopperProduct = await MarketPlaceInstance.getShopperProducts(owner1, front, product.name, shopper);
+    assert.equal(shopperProduct.toString(), "1", "the shopper's product amount should be 1");
   });
 
   it("...should fail to toggleContractActive by not admin", async () => {
