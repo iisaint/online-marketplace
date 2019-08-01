@@ -46,6 +46,12 @@ class App extends Component {
   
 
   componentDidMount = async () => {
+    console.log({
+      admin: "0xe614d9740291783ADc84d266D2E29bDc18cf0D41",
+      storeOwner: "0x8c99F5350e701c9C82abD3c352984EEF3eABF2b7",
+      shopper: "0x41051ee4dE22444a916F9BC35D7E7FC797bFac4B",
+      storeOwner2: "0x1a0b06BcAaf36e8315db8b391FDBFd879597d799"
+    })
     try {
       // Get network provider and web3 instance.
       const web3 = await getWeb3();
