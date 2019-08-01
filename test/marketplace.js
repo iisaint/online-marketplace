@@ -8,7 +8,9 @@ contract("MarketPlace", accounts => {
   const notAdmin = accounts[1];
   const owner1 = accounts[2];
   const owner2 = accounts[3];
+  const shopper = accounts[4];
   const store = "Store A";
+  const store2 = "Store B";
   const front = "Front 1";
   const front2 = "Front 2";
   const product = {
@@ -18,6 +20,14 @@ contract("MarketPlace", accounts => {
     sales: 0,
     isOpen: true
   }
+  const product2 = {
+    name: "P002",
+    price: 100,
+    quantity: 100,
+    sales: 0,
+    isOpen: true
+  }
+  
   
   beforeEach(async() => {
     MarketPlaceInstance = await MarketPlace.deployed();
@@ -103,5 +113,42 @@ contract("MarketPlace", accounts => {
       assert.equal(productInfo.sales, product.sales, "the product sales should match.");
       assert.equal(productInfo.isOpen, product.isOpen, "the product isOpen should match.");
     }
+  });
+
+  it("...should success to buyProduct", async () => {
+    const tx = await MarketPlaceInstance.buyProduct(owner1, front, product.name, 1, { from: shopper, value: product.price});
+    const event = tx.logs[0];
+    console.log(event);
+    assert.equal(event.event, "LogBuyProduct", "the created event should be emitted.");
+    assert.equal(event.args.shopper, shopper, "the created event shopper should match.");
+    assert.equal(event.args.owner, owner1, "the created event store owner should match.");
+    assert.equal(event.args.front, front, "the created event front should match.");
+    assert.equal(event.args.product, product.name, "the created event product should match.");
+    assert.equal(event.args.amount, 1, "the created event buy amount should match.");
+
+    const productInfo = await MarketPlaceInstance.getProductAtIndex(owner1, front, 0);
+    console.log(productInfo);
+  });
+
+  it("...should fail to toggleContractActive by not admin", async () => {
+    await catchRevert(MarketPlaceInstance.toggleContractActive({ from: owner2 }));
+  });
+
+  it("...should fail to forcedWithdraw when onlyInEmergency", async () => {
+    await catchRevert(MarketPlaceInstance.forcedWithdraw(owner1, { from: admin }));
+  });
+
+  it("...should success to toggleContractActive by admin", async () => {
+    await MarketPlaceInstance.toggleContractActive({ from: admin });
+  });
+
+  it("...should success to forcedWithdraw", async () => {
+    await MarketPlaceInstance.forcedWithdraw(owner1, { from: admin });
+  });
+
+  it("...should fail to execute stopInEmergency functions while emergency", async () => {
+    await catchRevert(MarketPlaceInstance.createStore(owner1, store2, { from: admin }));
+    await catchRevert(MarketPlaceInstance.createFront(front2, true, { from: owner1 }));
+    await catchRevert(MarketPlaceInstance.createProduct(front, product2.name, product2.price, product2.quantity, product2.isOpen, { from: owner1 }));
   });
 });

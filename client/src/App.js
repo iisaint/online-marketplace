@@ -10,7 +10,8 @@ class App extends Component {
     super(props);
 
     this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleSubmitAdmin = this.handleSubmitAdmin.bind(this);
+    this.handleCreateStore = this.handleCreateStore.bind(this);
+    this.handleToggleContractActive = this.handleToggleContractActive.bind(this);
     this.handleCreateFront = this.handleCreateFront.bind(this);
     this.handleWithdraw = this.handleWithdraw.bind(this);
     this.handleBuyProduct = this.handleBuyProduct.bind(this);
@@ -160,7 +161,7 @@ class App extends Component {
     });
   }
 
-  async handleSubmitAdmin(event) {
+  async handleCreateStore(event) {
     event.preventDefault();
 
     const { web3, contract, accounts, address, name } = this.state;
@@ -186,13 +187,11 @@ class App extends Component {
     this.setState({ stores });
   }
 
-  async handleSubmitOwner(event) {
+  async handleToggleContractActive(event) {
     event.preventDefault();
 
-    const { web3, contract, accounts, frontName, isOpen } = this.state;
-
-    console.log(frontName);
-    console.log(isOpen);
+    const { contract, accounts } = this.state;
+    await contract.methods.handleToggleContractActive().send({from: accounts[0]});
   }
 
   handleCreateFront = async () => {
@@ -202,7 +201,13 @@ class App extends Component {
     const frontCount = await contract.methods.getFrontsCount(accounts[0]).call();
     let fronts = [];
     for (let i=0; i < frontCount; i++) {
-      const front = await contract.methods.getFrontAtIndex(accounts[0], i).call();
+      let front = await contract.methods.getFrontAtIndex(accounts[0], i).call();
+      front.products = [];
+      const productCount = await contract.methods.getProductsCount(accounts[0], front.name).call();
+      for (let j=0; j < productCount; j++) {
+        const product = await contract.methods.getProductAtIndex(accounts[0], front.name, j).call();
+        front.products.push(product);
+      }
       fronts.push(front);
     }
     console.log(fronts);
@@ -272,14 +277,28 @@ class App extends Component {
   admin() {
     return (
       <div>
-      <form onSubmit={this.handleSubmitAdmin}>
-      <label>
-        Create Store - 
-        owner address <input name="address" type="text" value={this.state.address} onChange={this.handleInputChange} />
-        store name <input name="name" type="text" value={this.state.name} onChange={this.handleInputChange} />
-      </label>
-      <input type="submit" value="Submit" />
-      </form>
+      <Table>
+          <thead>
+            <tr>
+              <th>method</th>
+              <th>inputs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><Button size="medium" onClick={this.handleCreateStore}>createStore</Button></td>
+              <td>
+              owner address <input name="address" type="text" value={this.state.address} onChange={this.handleInputChange} /><br></br>
+              store name <input name="name" type="text" value={this.state.name} onChange={this.handleInputChange} />
+              </td>
+            </tr>
+            <tr>
+              <td><Button size="medium" onClick={this.handleToggleContractActive}>toggleContractActive</Button></td>
+              <td>N/A</td>
+            </tr>
+          </tbody>
+        </Table>
+        <br></br>
       <div>
       <Table>
         <thead>
@@ -358,7 +377,7 @@ class App extends Component {
               <td>{(e.isOpen)? 'true': 'false'}</td>
               <td>
                 { e.products.map(p => (
-                  <li key={p.name}>{`${p.name}, ${p.price}, ${p.quantity}, ${p.sales}, ${p.isOpen}`}</li>
+                  <li key={p.name}>{`${p.name}, price:${p.price}, quantity:${p.quantity}, sales:${p.sales}, isOpen:${p.isOpen}`}</li>
                 ))}
               </td>
               </tr>
@@ -428,7 +447,7 @@ class App extends Component {
         <h1>Market Place</h1>
         <p>Contract Address: {this.state.contract._address}</p>
         <p>Current User: {this.state.accounts[0]}</p>
-        <p>Role: {this.state.role}</p>
+        <p>Role: <mark><strong>{this.state.role}</strong></mark></p>
         {operatons}
         
       </div>

@@ -83,6 +83,16 @@ contract MarketPlace is Adminable {
       store.frontKeys.push(_name);
       emit LogNewFront(msg.sender, _name);
   }
+
+  /** @dev Toggle storefront isOpen for shoppers.
+    * @param _name a unique name of storefront.
+    */
+  function toggleFrontActive(string memory _name) public onlyStoreOwner stopInEmergency {
+    require(stores[msg.sender].isFront[_name], "front name doesn't exist.");
+    Store storage s = stores[msg.sender];
+    Front storage f = s.fronts[_name];
+    f.isOpen = !f.isOpen;
+  }
   
   /** @dev Create a product of storefront by store owner .
     * @param _front the name of storefront.
@@ -101,6 +111,19 @@ contract MarketPlace is Adminable {
       f.productKeys.push(_product);
       emit LogNewProduct(msg.sender, _front, _product);
   }
+
+  /** @dev Toggle the product of storefront isOpen for shoppers.
+    * @param _front a unique name of storefront.
+    * @param _product a unique name of product.
+    */
+  function toggleFrontActive(string memory _front, string memory _product) public onlyStoreOwner stopInEmergency {
+    require(stores[msg.sender].isFront[_front], "front name doesn't exist.");
+    Store storage s = stores[msg.sender];
+    Front storage f = s.fronts[_front];
+    require(f.isProduct[_product], "product name doesn't exist.");
+    Product storage p = f.products[_product];
+    p.isOpen = !p.isOpen;
+  }
   
   /** @dev Store owner can withdraw his balance.
     * @param _amount amount of balance to be withdraw.
@@ -116,9 +139,9 @@ contract MarketPlace is Adminable {
     * @param _owner address of store owner.
     */
   function forcedWithdraw(address payable _owner) public onlyAdmin onlyInEmergency {
-    require(stores[msg.sender].balance > 0, "the balance is zero.");
-    uint amount = stores[msg.sender].balance;
-    stores[msg.sender].balance = 0;
+    require(stores[_owner].balance > 0, "the balance is zero.");
+    uint amount = stores[_owner].balance;
+    stores[_owner].balance = 0;
     _owner.transfer(amount);
   }
   
@@ -137,14 +160,15 @@ contract MarketPlace is Adminable {
       require(f.isProduct[_product], "the product doesn't exist.");
       Product storage p = f.products[_product];
       require(p.isOpen, "the product is not open.");
-      require(_amount + p.sales <= p.quantity);
-      require(msg.value >= _amount * p.price);
-      p.sales.add(_amount);
-      uint refund = msg.value.sub(_amount).mul(p.price);
+      require(_amount <= p.quantity, "out of amount.");
+      require(msg.value >= _amount * p.price, "not enough value.");
+      p.quantity = p.quantity.sub(_amount);
+      p.sales = p.sales.add(_amount);
+      uint refund = msg.value.sub(_amount.mul(p.price));
       if (refund > 0) {
           msg.sender.transfer(refund);
       }
-      s.balance.add(msg.value.sub(refund));
+      s.balance = s.balance.add(msg.value.sub(refund));
       emit LogBuyProduct(msg.sender, _owner, _front, _product, _amount);
   }
   
