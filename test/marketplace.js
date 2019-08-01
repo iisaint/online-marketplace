@@ -134,6 +134,10 @@ contract("MarketPlace", accounts => {
     assert.equal(shopperProduct.toString(), "1", "the shopper's product amount should be 1");
   });
 
+  it("...should success to withdraw by store owner", async () => {
+    await MarketPlaceInstance.withdraw(product.price - 10, {from: owner1});
+  });
+
   it("...should fail to toggleContractActive by not admin", async () => {
     await catchRevert(MarketPlaceInstance.toggleContractActive({ from: owner2 }));
   });
