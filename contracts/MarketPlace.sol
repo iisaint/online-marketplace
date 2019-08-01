@@ -76,7 +76,7 @@ contract MarketPlace is Adminable {
     * @param _isOpen is the storefront available or not.
     */
   function createFront(string memory _name, bool _isOpen) public onlyStoreOwner stopInEmergency {
-      require(!stores[msg.sender].isFront[_name]);
+      require(!stores[msg.sender].isFront[_name], "front name is already created.");
       Store storage store = stores[msg.sender];
       store.isFront[_name] = true;
       store.fronts[_name] = Front(_name, _isOpen, new string[](0));
@@ -93,9 +93,9 @@ contract MarketPlace is Adminable {
     */
   function createProduct(string memory _front, string memory _product, uint _price, uint _quantity, bool _isOpen) public onlyStoreOwner stopInEmergency {
       Store storage s = stores[msg.sender];
-      require(s.isFront[_front]);
+      require(s.isFront[_front], "front doesn't exist.");
       Front storage f = s.fronts[_front];
-      require(!f.isProduct[_product]);
+      require(!f.isProduct[_product], "product name is already created.");
       f.isProduct[_product] = true;
       f.products[_product] = Product(_product, _price, _quantity, 0, _isOpen);
       f.productKeys.push(_product);
@@ -106,7 +106,7 @@ contract MarketPlace is Adminable {
     * @param _amount amount of balance to be withdraw.
     */
   function withdraw(uint _amount) public onlyStoreOwner stopInEmergency {
-      require(_amount <= stores[msg.sender].balance);
+      require(_amount <= stores[msg.sender].balance, "insufficient balance.");
       stores[msg.sender].balance.sub(_amount);
       msg.sender.transfer(_amount);
       emit LogWithdraw(msg.sender, stores[msg.sender].balance);
@@ -116,6 +116,7 @@ contract MarketPlace is Adminable {
     * @param _owner address of store owner.
     */
   function forcedWithdraw(address payable _owner) public onlyAdmin onlyInEmergency {
+    require(stores[msg.sender].balance > 0, "the balance is zero.");
     uint amount = stores[msg.sender].balance;
     stores[msg.sender].balance = 0;
     _owner.transfer(amount);
@@ -128,14 +129,14 @@ contract MarketPlace is Adminable {
     * @param _amount purches amount of product.
     */
   function buyProduct(address _owner, string memory _front, string memory _product, uint _amount) public payable stopInEmergency {
-      require(isStore[_owner]);
+      require(isStore[_owner], "the store doesn't exist.");
       Store storage s = stores[_owner];
-      require(s.isFront[_front]);
+      require(s.isFront[_front], "the front doesn't exist.");
       Front storage f = s.fronts[_front];
-      require(f.isOpen);
-      require(f.isProduct[_product]);
+      require(f.isOpen, "the front is not open.");
+      require(f.isProduct[_product], "the product doesn't exist.");
       Product storage p = f.products[_product];
-      require(p.isOpen);
+      require(p.isOpen, "the product is not open.");
       require(_amount + p.sales <= p.quantity);
       require(msg.value >= _amount * p.price);
       p.sales.add(_amount);
@@ -161,7 +162,7 @@ contract MarketPlace is Adminable {
     * @return balance The balance of store.
     */
   function getStoreAtIndex(uint _index) public view returns(address owner, string memory name, uint balance) {
-    require(_index < storeKeys.length);
+    require(_index < storeKeys.length, "out of index.");
     owner = storeKeys[_index];
     name = stores[storeKeys[_index]].name;
     balance = stores[storeKeys[_index]].balance;
@@ -173,7 +174,7 @@ contract MarketPlace is Adminable {
     * @return balance The balance of store.
     */
   function getStoreDetail(address _owner) public view returns(string memory name, uint balance) {
-    require(isStore[_owner]);
+    require(isStore[_owner], "the owner's store doesn't exist");
     name = stores[_owner].name;
     balance = stores[_owner].balance;
   }
@@ -183,7 +184,7 @@ contract MarketPlace is Adminable {
     * @return The storefront count.
     */
   function getFrontsCount(address _owner) public view returns(uint) {
-      require(isStore[_owner]);
+      require(isStore[_owner], "the owner's store doesn't exist");
       return stores[_owner].frontKeys.length;
   }
   
@@ -194,9 +195,9 @@ contract MarketPlace is Adminable {
     * @return isOpen The status of storefront.
     */
   function getFrontAtIndex(address _owner, uint _index) public view returns(string memory name, bool isOpen) {
-      require(isStore[_owner]);
+      require(isStore[_owner], "the owner's store doesn't exist");
       Store storage s = stores[_owner];
-      require(_index < s.frontKeys.length);
+      require(_index < s.frontKeys.length, "out of index.");
       Front memory f = s.fronts[s.frontKeys[_index]];
       name = f.name;
       isOpen = f.isOpen;
@@ -208,9 +209,9 @@ contract MarketPlace is Adminable {
     * @return The product count of the storefront.
     */
   function getProductsCount(address _owner, string memory _front) public view returns(uint) {
-      require(isStore[_owner]);
+      require(isStore[_owner], "the owner's store doesn't exist");
       Store storage s = stores[_owner];
-      require(s.isFront[_front]);
+      require(s.isFront[_front], "the owner's front doesn't exist");
       Front memory f = s.fronts[_front];
       return f.productKeys.length;
   }
@@ -226,9 +227,9 @@ contract MarketPlace is Adminable {
     * @return isOpen The status of product.
     */
   function getProductAtIndex(address _owner, string memory _front, uint _index) public view returns(string memory name, uint price, uint quantity, uint sales, bool isOpen) {
-      require(isStore[_owner]);
+      require(isStore[_owner], "the owner's store doesn't exist");
       Store storage s = stores[_owner];
-      require(s.isFront[_front]);
+      require(s.isFront[_front], "the owner's front doesn't exist");
       Front storage f = s.fronts[_front];
       Product memory p = f.products[f.productKeys[_index]];
       name = p.name;
