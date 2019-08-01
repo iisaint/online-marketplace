@@ -12,6 +12,7 @@ class App extends Component {
     this.handleInputChange = this.handleInputChange.bind(this);
     this.handleCreateStore = this.handleCreateStore.bind(this);
     this.handleToggleContractActive = this.handleToggleContractActive.bind(this);
+    this.handleForcedWithdraw = this.handleForcedWithdraw.bind(this);
     this.handleCreateFront = this.handleCreateFront.bind(this);
     this.handleWithdraw = this.handleWithdraw.bind(this);
     this.handleBuyProduct = this.handleBuyProduct.bind(this);
@@ -23,6 +24,7 @@ class App extends Component {
       contract: null, 
       admin: null, 
       address: '', 
+      forcedOwner: '',
       name: '', 
       stores:[], 
       role: '' ,
@@ -44,6 +46,12 @@ class App extends Component {
   
 
   componentDidMount = async () => {
+    console.log({
+      admin: "0xe614d9740291783ADc84d266D2E29bDc18cf0D41",
+      storeOwner: "0x8c99F5350e701c9C82abD3c352984EEF3eABF2b7",
+      shopper: "0x41051ee4dE22444a916F9BC35D7E7FC797bFac4B",
+      storeOwner2: "0x1a0b06BcAaf36e8315db8b391FDBFd879597d799"
+    })
     try {
       // Get network provider and web3 instance.
       const web3 = await getWeb3();
@@ -215,7 +223,14 @@ class App extends Component {
     event.preventDefault();
 
     const { contract, accounts } = this.state;
-    await contract.methods.handleToggleContractActive().send({from: accounts[0]});
+    await contract.methods.toggleContractActive().send({from: accounts[0]});
+  }
+
+  async handleForcedWithdraw(event) {
+    event.preventDefault();
+    const { contract, accounts, forcedOwner } = this.state;
+    console.log(forcedOwner);
+    await contract.methods.forcedWithdraw(forcedOwner).send({from: accounts[0]});
   }
 
   handleCreateFront = async () => {
@@ -344,6 +359,12 @@ class App extends Component {
               <td><Button size="medium" onClick={this.handleToggleContractActive}>toggleContractActive</Button></td>
               <td>N/A</td>
             </tr>
+            <tr>
+              <td><Button size="medium" onClick={this.handleForcedWithdraw}>forcedWithdraw</Button></td>
+              <td>
+                owner address <input name="forcedOwner" type="text" value={this.state.forcedOwner} onChange={this.handleInputChange} /><br></br>
+              </td>
+            </tr>
           </tbody>
         </Table>
         <br></br>
@@ -447,7 +468,7 @@ class App extends Component {
             <th>Front</th>
             <th>Product</th>
             <th>price</th>
-            <th>available</th>
+            <th>quantity</th>
             <th>sales</th>
             <th></th>
           </tr>
