@@ -61,10 +61,12 @@ ganache-cli
 ```
 4. Switch back to previous terminal and connect to ganache-cli and run tests
 ```sh
+$ mv ./config/dev_sample.js ./config/dev.js // see next section
 $ truffle console --network=ganache
 truffle(ganache)> compile
 truffle(ganache)> migrate --reset
 truffle(ganache)> test
+truffle(ganache)> networks
 ```
 5. Open a new terminal and start a dapp UI
 ```sh
