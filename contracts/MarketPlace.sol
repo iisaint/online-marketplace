@@ -1,9 +1,11 @@
 pragma solidity ^0.5.0;
 
 import "./Adminable.sol";
+import "./SafeMath.sol";
 
 /** @title Online Marketplace. */
 contract MarketPlace is Adminable {
+  using SafeMath for uint256;
   struct Product {
     string name;
     uint price;
@@ -105,7 +107,7 @@ contract MarketPlace is Adminable {
     */
   function withdraw(uint _amount) public onlyStoreOwner stopInEmergency {
       require(_amount <= stores[msg.sender].balance);
-      stores[msg.sender].balance -= _amount;
+      stores[msg.sender].balance.sub(_amount);
       msg.sender.transfer(_amount);
       emit LogWithdraw(msg.sender, stores[msg.sender].balance);
   }
@@ -136,12 +138,12 @@ contract MarketPlace is Adminable {
       require(p.isOpen);
       require(_amount + p.sales <= p.quantity);
       require(msg.value >= _amount * p.price);
-      p.sales += _amount;
-      uint refund = msg.value - _amount * p.price;
+      p.sales.add(_amount);
+      uint refund = msg.value.sub(_amount).mul(p.price);
       if (refund > 0) {
           msg.sender.transfer(refund);
       }
-      s.balance += msg.value - refund;
+      s.balance.add(msg.value.sub(refund));
       emit LogBuyProduct(msg.sender, _owner, _front, _product, _amount);
   }
   
